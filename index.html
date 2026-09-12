@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JHP - Banner Slider</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Google Fonts: Sorts Mill Goudy / Goudy Old Style -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sorts+Mill+Goudy:ital@0;1&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Fullscreen Pinned Banner Section -->
+  <main class="slider-section">
+    <div class="slider-viewport">
+
+      <!-- Background Image Stack -->
+      <div class="bg-stack">
+        <div class="bg-slide">
+          <div class="bg-image" style="background-image: url('imgs/slider1.png');"></div>
+        </div>
+        <div class="bg-slide">
+          <div class="bg-image" style="background-image: url('imgs/slider2.png');"></div>
+        </div>
+        <div class="bg-slide">
+          <div class="bg-image" style="background-image: url('imgs/slider3.png');"></div>
+        </div>
+        <div class="bg-slide">
+          <div class="bg-image" style="background-image: url('imgs/slider1.png');"></div>
+        </div>
+      </div>
+
+      <!-- Content Cards Container -->
+      <div class="cards-stage">
+
+        <!-- Card 1 (Exact matching image reference) -->
+        <div class="content-card">
+          <span class="card-tag">T R U S T</span>
+          <h2 class="card-title">Skin in the game</h2>
+          <p class="card-description">The JHP Team invests its own proprietary corpus alongside clients.</p>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="content-card">
+          <span class="card-tag">A L I G N M E N T</span>
+          <h2 class="card-title">Long-term vision</h2>
+          <p class="card-description">We believe in compounding relationships and sustainable value creation across market cycles.</p>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="content-card">
+          <span class="card-tag">E X P E R T I S E</span>
+          <h2 class="card-title">Disciplined approach</h2>
+          <p class="card-description">Rigorous research and focused portfolio management built on unwavering principles.</p>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="content-card">
+          <span class="card-tag">I N T E G R I T Y</span>
+          <h2 class="card-title">Client-first commitment</h2>
+          <p class="card-description">Transparent, dedicated stewardship of wealth with shared conviction and purpose.</p>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Lenis Smooth Scroll & GSAP -->
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

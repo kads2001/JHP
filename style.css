@@ -1,0 +1,190 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  background-color: #0c1824;
+  font-family: 'Goudy Old Style', 'Sorts Mill Goudy', 'Garamond', 'Georgia', serif;
+  overflow-x: hidden;
+}
+
+/* Lenis Smooth Scroll Setup */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+/* Fullscreen Pinned Banner Section */
+.slider-section {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.slider-viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+/* Background Image Stack */
+.bg-stack {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.bg-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  will-change: opacity;
+  transform: translateZ(0);
+}
+
+/* Tall Background Image for Vertical Panning & Zoom */
+.bg-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 135%;
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  will-change: transform;
+  transform-origin: center center;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+/* Cards Container (Positioned Left-Center) */
+.cards-stage {
+  position: absolute;
+  top: 50%;
+  left: 8%;
+  transform: translateY(-50%);
+  width: 580px;
+  height: 320px;
+  z-index: 3;
+}
+
+/* Content Card Matching the Exact Image Design */
+.content-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: rgb(255 255 255 / 31%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 0px; /* Sharp rectangular card as in reference */
+  padding: 50px 60px;
+  box-shadow: 0 15px 45px rgba(0, 25, 45, 0.12);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* Tag / Category in Goudy Old Style */
+.card-tag {
+  display: block;
+  font-family: 'Goudy Old Style', 'Sorts Mill Goudy', 'Garamond', 'Georgia', serif;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 7px;
+  text-transform: uppercase;
+  color: #23587c;
+  margin-bottom: 22px;
+}
+
+/* Title in Goudy Old Style */
+.card-title {
+  font-family: 'Goudy Old Style', 'Sorts Mill Goudy', 'Garamond', 'Georgia', serif;
+  font-size: 52px;
+  font-weight: 400;
+  line-height: 1.15;
+  color: #1e5276;
+  margin-bottom: 20px;
+  letter-spacing: -0.5px;
+}
+
+/* Description in Goudy Old Style */
+.card-description {
+  font-family: 'Goudy Old Style', 'Sorts Mill Goudy', 'Garamond', 'Georgia', serif;
+  font-size: 19px;
+  line-height: 1.5;
+  color: #245a80;
+  font-weight: 400;
+}
+
+/* Responsive adjustments using fixed px font sizes */
+@media (max-width: 900px) {
+  .cards-stage {
+    left: 5%;
+    width: 480px;
+  }
+
+  .card-title {
+    font-size: 40px;
+  }
+
+  .card-description {
+    font-size: 17px;
+  }
+
+  .content-card {
+    padding: 35px 40px;
+  }
+}
+
+@media (max-width: 600px) {
+  .cards-stage {
+    left: 20px;
+    right: 20px;
+    width: auto;
+    top: auto;
+    bottom: 60px;
+    transform: none;
+    height: auto;
+  }
+
+  .content-card {
+    padding: 28px 24px;
+  }
+
+  .card-tag {
+    font-size: 13px;
+    letter-spacing: 5px;
+    margin-bottom: 14px;
+  }
+
+  .card-title {
+    font-size: 32px;
+    margin-bottom: 14px;
+  }
+
+  .card-description {
+    font-size: 15px;
+  }
+}
