@@ -1,343 +1,430 @@
-// Register GSAP ScrollTrigger
-gsap.registerPlugin(ScrollTrigger);
+// Register GSAP Plugins
+gsap.registerPlugin(ScrollTrigger, Observer);
 
-// 1. Initialize Lenis Smooth Scrolling
-const lenis = new Lenis({
-  duration: 1.2,
-  easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-  smoothWheel: true,
-  touchMultiplier: 1.5,
-});
-
-// Synchronize Lenis with GSAP ScrollTrigger
-lenis.on("scroll", ScrollTrigger.update);
-
-gsap.ticker.add((time) => {
-  lenis.raf(time * 1000);
-});
-
-gsap.ticker.lagSmoothing(0);
-
-// Window resize sync
-window.addEventListener("resize", () => {
-  ScrollTrigger.refresh();
-  lenis.resize();
-});
-
-// 2. Select Elements
+// Select DOM Elements
 const bgSlides = gsap.utils.toArray(".bg-slide");
 const bgImages = gsap.utils.toArray(".bg-image");
 const cards = gsap.utils.toArray(".content-card");
 const dots = gsap.utils.toArray(".hud-pagination .dot");
 const activeIndexEl = document.querySelector(".active-index");
-const totalIndexEl = document.querySelector(".total-index");
 
 const totalSlides = bgSlides.length;
 
-if (totalIndexEl) {
-  totalIndexEl.textContent = totalSlides.toString().padStart(2, "0");
+// Step Management
+let currentStep = 0;
+let isAnimating = false;
+
+// Total steps calculation
+const maxStep = 2 + (totalSlides - 1) * 3;
+
+// Initial Setup
+function initSlider() {
+  // Set background slide stacking and opacity
+  bgSlides.forEach((slide, i) => {
+    gsap.set(slide, { opacity: i === 0 ? 1 : 0, zIndex: i + 1 });
+  });
+
+  // Slide 1 starts at 1:1 scale
+  gsap.set(bgImages[0], { yPercent: 0, scale: 1 });
+
+  // Other slides start with subtle scale for vertical pan
+  for (let i = 1; i < totalSlides; i++) {
+    gsap.set(bgImages[i], { yPercent: 6, scale: 1.18 });
+  }
+
+  // Set all content cards below screen
+  cards.forEach((card) => {
+    gsap.set(card, {
+      opacity: 0,
+      y: 160,
+      width: "100%",
+      pointerEvents: "none",
+    });
+  });
+
+  updateHUD(1);
 }
 
-// 3. Responsive Animations via gsap.matchMedia
-const mm = gsap.matchMedia();
+// Update HUD Indicators (Counter & Dots)
+function updateHUD(slideNumber) {
+  if (activeIndexEl) {
+    activeIndexEl.textContent = slideNumber.toString().padStart(2, "0");
+  }
 
-// -------------------------------------------------------------
-// DESKTOP & TABLET (Width >= 768px)
-// -------------------------------------------------------------
-mm.add("(min-width: 768px)", () => {
-  // Initial States
-  bgSlides.forEach((slide, i) => {
-    gsap.set(slide, { opacity: i === 0 ? 1 : 0 });
+  dots.forEach((dot, idx) => {
+    if (idx === slideNumber - 1) {
+      gsap.to(dot, { width: 28, backgroundColor: "#ffffff", duration: 0.35 });
+    } else {
+      gsap.to(dot, { width: 8, backgroundColor: "rgba(255, 255, 255, 0.35)", duration: 0.35 });
+    }
   });
+}
 
-  bgImages.forEach((img) => {
-    gsap.set(img, { yPercent: 0, scale: 1.38 });
-  });
+// Step Transition Controller (One Scroll -> One Step)
+function goToStep(targetStep, direction) {
+  if (isAnimating) return;
+  if (targetStep < 0 || targetStep > maxStep) return;
 
-  cards.forEach((card) => {
-    gsap.set(card, {
-      opacity: 0,
-      y: 60,
-      width: "100%",
-      pointerEvents: "none",
-    });
-  });
-
-  dots.forEach((dot, i) => {
-    gsap.set(dot, {
-      width: i === 0 ? 28 : 8,
-      backgroundColor: i === 0 ? "#ffffff" : "rgba(255, 255, 255, 0.35)",
-    });
-  });
-
-  if (activeIndexEl) activeIndexEl.textContent = "01";
-
-  // Master Timeline
+  isAnimating = true;
+  const isForward = direction > 0;
   const tl = gsap.timeline({
-    scrollTrigger: {
-      trigger: ".slider-section",
-      start: "top top",
-      end: () => `+=${totalSlides * 260}%`,
-      pin: true,
-      scrub: 1.2,
-      anticipatePin: 1,
+    defaults: { ease: "power2.inOut" },
+    onComplete: () => {
+      currentStep = targetStep;
+      setTimeout(() => {
+        isAnimating = false;
+      }, 250);
     },
   });
 
-  for (let i = 0; i < totalSlides; i++) {
-    const currentBgSlide = bgSlides[i];
-    const currentBgImage = bgImages[i];
-    const currentCard = cards[i];
-    const currentDot = dots[i];
-
-    // STEP 1: Camera Pan Down
-    tl.to(currentBgImage, {
-      yPercent: -20,
-      duration: 1.4,
-      ease: "power1.inOut",
-    });
-
-    // STEP 2: Card fade up + Background Zoom Out
-    tl.to(currentCard, {
-      opacity: 1,
-      y: 0,
-      width: "100%",
-      pointerEvents: "auto",
-      duration: 1.0,
-      ease: "power2.out",
-    });
-
-    tl.to(
-      currentBgImage,
-      {
-        scale: 1.0,
-        duration: 1.0,
-        ease: "power2.out",
-      },
-      "<"
-    );
-
-    // Reading Pause
-    tl.to({}, { duration: 0.5 });
-
-    // STEP 3: Card Expand & Fade Out + Crossfade to Next Slide
-    if (i < totalSlides - 1) {
-      const nextBgSlide = bgSlides[i + 1];
-      const nextBgImage = bgImages[i + 1];
-      const nextDot = dots[i + 1];
-
-      tl.to(currentCard, {
-        opacity: 0,
-        y: -20,
-        width: "135%",
-        pointerEvents: "none",
-        duration: 0.75,
-        ease: "power2.inOut",
-      });
-
-      tl.to(
-        nextBgSlide,
-        {
+  if (isForward) {
+    // ==========================================
+    // FORWARD TRANSITIONS (SCROLL DOWN)
+    // ==========================================
+    switch (targetStep) {
+      // SLIDE 1
+      case 1:
+        // 1st scroll: Text box 1 slides up from bottom
+        tl.to(cards[0], {
+          y: 0,
           opacity: 1,
+          width: "100%",
+          pointerEvents: "auto",
           duration: 0.9,
-          ease: "power1.inOut",
-        },
-        "<"
-      );
+          ease: "power2.out",
+        });
+        updateHUD(1);
+        break;
 
-      tl.to(
-        currentBgSlide,
-        {
+      case 2:
+        // 2nd scroll: Background 1 zooms in proportionally
+        tl.to(bgImages[0], {
+          scale: 1.18,
+          duration: 1.0,
+        });
+        updateHUD(1);
+        break;
+
+      // SLIDE 2
+      case 3:
+        // 3rd scroll: Card 1 exits, Slide 2 appears (top view, no card)
+        tl.to(cards[0], {
           opacity: 0,
+          y: -30,
+          width: "140%",
+          pointerEvents: "none",
+          duration: 0.6,
+        });
+        tl.to(bgSlides[1], { opacity: 1, duration: 0.8 }, "<");
+        tl.to(bgSlides[0], { opacity: 0, duration: 0.8 }, "<");
+        tl.set(bgImages[1], { yPercent: 6, scale: 1.18 }, "<");
+        updateHUD(2);
+        break;
+
+      case 4:
+        // 4th scroll: Slide 2 pans down to reveal climber
+        tl.to(bgImages[1], {
+          yPercent: -6,
+          duration: 1.1,
+        });
+        updateHUD(2);
+        break;
+
+      case 5:
+        // 5th scroll: Card 2 slides up from bottom
+        tl.to(cards[1], {
+          y: 0,
+          opacity: 1,
+          width: "100%",
+          pointerEvents: "auto",
           duration: 0.9,
-          ease: "power1.inOut",
-        },
-        "<"
-      );
+          ease: "power2.out",
+        });
+        updateHUD(2);
+        break;
 
-      tl.set(nextBgImage, { yPercent: 0, scale: 1.38 }, "<");
+      // SLIDE 3
+      case 6:
+        // 6th scroll: Card 2 exits, Slide 3 appears (top sunburst view, no card)
+        tl.to(cards[1], {
+          opacity: 0,
+          y: -30,
+          width: "140%",
+          pointerEvents: "none",
+          duration: 0.6,
+        });
+        tl.to(bgSlides[2], { opacity: 1, duration: 0.8 }, "<");
+        tl.to(bgSlides[1], { opacity: 0, duration: 0.8 }, "<");
+        tl.set(bgImages[2], { yPercent: 7, scale: 1.20 }, "<");
+        updateHUD(3);
+        break;
 
-      if (currentDot && nextDot) {
-        tl.to(
-          currentDot,
-          {
-            width: 8,
-            backgroundColor: "rgba(255, 255, 255, 0.35)",
-            duration: 0.4,
-            ease: "power2.out",
-          },
-          "<"
-        );
-        tl.to(
-          nextDot,
-          {
-            width: 28,
-            backgroundColor: "#ffffff",
-            duration: 0.4,
-            ease: "power2.out",
-          },
-          "<"
-        );
-      }
+      case 7:
+        // 7th scroll: Slide 3 pans down to reveal hammock & feet
+        tl.to(bgImages[2], {
+          yPercent: -7,
+          duration: 1.1,
+        });
+        updateHUD(3);
+        break;
 
-      tl.call(
-        () => {
-          const num = (i + 2).toString().padStart(2, "0");
-          if (activeIndexEl) activeIndexEl.textContent = num;
-        },
-        null,
-        "<+=0.2"
-      );
+      case 8:
+        // 8th scroll: Card 3 slides up from bottom
+        tl.to(cards[2], {
+          y: 0,
+          opacity: 1,
+          width: "100%",
+          pointerEvents: "auto",
+          duration: 0.9,
+          ease: "power2.out",
+        });
+        updateHUD(3);
+        break;
+
+      // SLIDE 4
+      case 9:
+        // 9th scroll: Card 3 exits, Slide 4 appears (top view, no card)
+        tl.to(cards[2], {
+          opacity: 0,
+          y: -30,
+          width: "140%",
+          pointerEvents: "none",
+          duration: 0.6,
+        });
+        tl.to(bgSlides[3], { opacity: 1, duration: 0.8 }, "<");
+        tl.to(bgSlides[2], { opacity: 0, duration: 0.8 }, "<");
+        tl.set(bgImages[3], { yPercent: 6, scale: 1.18 }, "<");
+        updateHUD(4);
+        break;
+
+      case 10:
+        // 10th scroll: Slide 4 pans down
+        tl.to(bgImages[3], {
+          yPercent: -6,
+          duration: 1.1,
+        });
+        updateHUD(4);
+        break;
+
+      case 11:
+        // 11th scroll: Card 4 slides up from bottom
+        tl.to(cards[3], {
+          y: 0,
+          opacity: 1,
+          width: "100%",
+          pointerEvents: "auto",
+          duration: 0.9,
+          ease: "power2.out",
+        });
+        updateHUD(4);
+        break;
+    }
+  } else {
+    // ==========================================
+    // BACKWARD TRANSITIONS (SCROLL UP / REVERSE)
+    // ==========================================
+    switch (currentStep) {
+      // SLIDE 1
+      case 1:
+        // Hide Card 1 back down
+        tl.to(cards[0], {
+          y: 160,
+          opacity: 0,
+          width: "100%",
+          pointerEvents: "none",
+          duration: 0.7,
+        });
+        updateHUD(1);
+        break;
+
+      case 2:
+        // Zoom out Image 1 back to normal
+        tl.to(bgImages[0], {
+          scale: 1,
+          duration: 0.8,
+        });
+        updateHUD(1);
+        break;
+
+      // SLIDE 2
+      case 3:
+        // Back to Slide 1 (Zoomed state with Card 1)
+        tl.to(bgSlides[1], { opacity: 0, duration: 0.7 });
+        tl.to(bgSlides[0], { opacity: 1, duration: 0.7 }, "<");
+        tl.to(cards[0], {
+          opacity: 1,
+          y: 0,
+          width: "100%",
+          pointerEvents: "auto",
+          duration: 0.7,
+        }, "<");
+        updateHUD(1);
+        break;
+
+      case 4:
+        // Pan Image 2 back to top
+        tl.to(bgImages[1], {
+          yPercent: 6,
+          duration: 0.9,
+        });
+        updateHUD(2);
+        break;
+
+      case 5:
+        // Hide Card 2 back down
+        tl.to(cards[1], {
+          y: 160,
+          opacity: 0,
+          width: "100%",
+          pointerEvents: "none",
+          duration: 0.7,
+        });
+        updateHUD(2);
+        break;
+
+      // SLIDE 3
+      case 6:
+        // Back to Slide 2 (Panned state with Card 2)
+        tl.to(bgSlides[2], { opacity: 0, duration: 0.7 });
+        tl.to(bgSlides[1], { opacity: 1, duration: 0.7 }, "<");
+        tl.to(cards[1], {
+          opacity: 1,
+          y: 0,
+          width: "100%",
+          pointerEvents: "auto",
+          duration: 0.7,
+        }, "<");
+        updateHUD(2);
+        break;
+
+      case 7:
+        // Pan Image 3 back to top sunburst
+        tl.to(bgImages[2], {
+          yPercent: 7,
+          duration: 0.9,
+        });
+        updateHUD(3);
+        break;
+
+      case 8:
+        // Hide Card 3 back down
+        tl.to(cards[2], {
+          y: 160,
+          opacity: 0,
+          width: "100%",
+          pointerEvents: "none",
+          duration: 0.7,
+        });
+        updateHUD(3);
+        break;
+
+      // SLIDE 4
+      case 9:
+        // Back to Slide 3 (Panned state with Card 3)
+        tl.to(bgSlides[3], { opacity: 0, duration: 0.7 });
+        tl.to(bgSlides[2], { opacity: 1, duration: 0.7 }, "<");
+        tl.to(cards[2], {
+          opacity: 1,
+          y: 0,
+          width: "100%",
+          pointerEvents: "auto",
+          duration: 0.7,
+        }, "<");
+        updateHUD(3);
+        break;
+
+      case 10:
+        // Pan Image 4 back to top
+        tl.to(bgImages[3], {
+          yPercent: 6,
+          duration: 0.9,
+        });
+        updateHUD(4);
+        break;
+
+      case 11:
+        // Hide Card 4 back down
+        tl.to(cards[3], {
+          y: 160,
+          opacity: 0,
+          width: "100%",
+          pointerEvents: "none",
+          duration: 0.7,
+        });
+        updateHUD(4);
+        break;
     }
   }
-});
+}
 
-// -------------------------------------------------------------
-// MOBILE DEVICES (Width < 768px)
-// -------------------------------------------------------------
-mm.add("(max-width: 767px)", () => {
-  // Initial States
-  bgSlides.forEach((slide, i) => {
-    gsap.set(slide, { opacity: i === 0 ? 1 : 0 });
-  });
+// Initialize on page load
+initSlider();
 
-  bgImages.forEach((img) => {
-    gsap.set(img, { yPercent: 0, scale: 1.25 });
-  });
+// 6. Direct Input Controller: Scroll Down -> Forward, Scroll Up -> Backward
+let touchStartY = 0;
 
-  cards.forEach((card) => {
-    gsap.set(card, {
-      opacity: 0,
-      y: 40,
-      width: "100%",
-      pointerEvents: "none",
-    });
-  });
+// Mouse Wheel & Trackpad Listener
+window.addEventListener(
+  "wheel",
+  (e) => {
+    e.preventDefault();
+    if (isAnimating) return;
 
-  dots.forEach((dot, i) => {
-    gsap.set(dot, {
-      width: i === 0 ? 22 : 6,
-      backgroundColor: i === 0 ? "#ffffff" : "rgba(255, 255, 255, 0.35)",
-    });
-  });
+    if (Math.abs(e.deltaY) < 12) return;
 
-  if (activeIndexEl) activeIndexEl.textContent = "01";
-
-  // Master Timeline for Mobile
-  const tl = gsap.timeline({
-    scrollTrigger: {
-      trigger: ".slider-section",
-      start: "top top",
-      end: () => `+=${totalSlides * 200}%`,
-      pin: true,
-      scrub: 1.0,
-      anticipatePin: 1,
-    },
-  });
-
-  for (let i = 0; i < totalSlides; i++) {
-    const currentBgSlide = bgSlides[i];
-    const currentBgImage = bgImages[i];
-    const currentCard = cards[i];
-    const currentDot = dots[i];
-
-    // STEP 1: Gentle Pan Down
-    tl.to(currentBgImage, {
-      yPercent: -12,
-      duration: 1.2,
-      ease: "power1.inOut",
-    });
-
-    // STEP 2: Card Fade Up + Background Zoom Out
-    tl.to(currentCard, {
-      opacity: 1,
-      y: 0,
-      pointerEvents: "auto",
-      duration: 0.9,
-      ease: "power2.out",
-    });
-
-    tl.to(
-      currentBgImage,
-      {
-        scale: 1.0,
-        duration: 0.9,
-        ease: "power2.out",
-      },
-      "<"
-    );
-
-    // Reading Pause
-    tl.to({}, { duration: 0.4 });
-
-    // STEP 3: Exit transition (Vertical fade without horizontal overflow)
-    if (i < totalSlides - 1) {
-      const nextBgSlide = bgSlides[i + 1];
-      const nextBgImage = bgImages[i + 1];
-      const nextDot = dots[i + 1];
-
-      tl.to(currentCard, {
-        opacity: 0,
-        y: -24,
-        pointerEvents: "none",
-        duration: 0.65,
-        ease: "power2.inOut",
-      });
-
-      tl.to(
-        nextBgSlide,
-        {
-          opacity: 1,
-          duration: 0.8,
-          ease: "power1.inOut",
-        },
-        "<"
-      );
-
-      tl.to(
-        currentBgSlide,
-        {
-          opacity: 0,
-          duration: 0.8,
-          ease: "power1.inOut",
-        },
-        "<"
-      );
-
-      tl.set(nextBgImage, { yPercent: 0, scale: 1.25 }, "<");
-
-      if (currentDot && nextDot) {
-        tl.to(
-          currentDot,
-          {
-            width: 6,
-            backgroundColor: "rgba(255, 255, 255, 0.35)",
-            duration: 0.3,
-            ease: "power2.out",
-          },
-          "<"
-        );
-        tl.to(
-          nextDot,
-          {
-            width: 22,
-            backgroundColor: "#ffffff",
-            duration: 0.3,
-            ease: "power2.out",
-          },
-          "<"
-        );
-      }
-
-      tl.call(
-        () => {
-          const num = (i + 2).toString().padStart(2, "0");
-          if (activeIndexEl) activeIndexEl.textContent = num;
-        },
-        null,
-        "<+=0.2"
-      );
+    if (e.deltaY > 0) {
+      if (currentStep < maxStep) goToStep(currentStep + 1, 1);
+    } else if (e.deltaY < 0) {
+      if (currentStep > 0) goToStep(currentStep - 1, -1);
     }
+  },
+  { passive: false }
+);
+
+// Mobile Touch Gestures
+window.addEventListener(
+  "touchstart",
+  (e) => {
+    touchStartY = e.touches[0].clientY;
+  },
+  { passive: true }
+);
+
+window.addEventListener(
+  "touchmove",
+  (e) => {
+    e.preventDefault();
+  },
+  { passive: false }
+);
+
+window.addEventListener(
+  "touchend",
+  (e) => {
+    if (isAnimating) return;
+    const touchEndY = e.changedTouches[0].clientY;
+    const diff = touchStartY - touchEndY;
+
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) {
+        if (currentStep < maxStep) goToStep(currentStep + 1, 1);
+      } else {
+        if (currentStep > 0) goToStep(currentStep - 1, -1);
+      }
+    }
+  },
+  { passive: true }
+);
+
+// Keyboard Navigation Support
+window.addEventListener("keydown", (e) => {
+  if (isAnimating) return;
+
+  if (["ArrowDown", "PageDown", " "].includes(e.key)) {
+    e.preventDefault();
+    if (currentStep < maxStep) goToStep(currentStep + 1, 1);
+  } else if (["ArrowUp", "PageUp"].includes(e.key)) {
+    e.preventDefault();
+    if (currentStep > 0) goToStep(currentStep - 1, -1);
   }
 });
-
