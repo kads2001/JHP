@@ -9,7 +9,7 @@ html, body {
   width: 100%;
   max-width: 100vw;
   height: 100%;
-  background-color: #0c1824;
+  background-color: #08121e;
   font-family: 'Goudy Old Style', 'Sorts Mill Goudy', 'Garamond', 'Georgia', serif;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
@@ -35,7 +35,7 @@ html, body {
   overflow: hidden;
 }
 
-/* Background Image Stack (Strictly contained) */
+/* Background Image Stack */
 .bg-stack {
   position: absolute;
   top: 0;
@@ -59,51 +59,87 @@ html, body {
   transform: translateZ(0);
 }
 
-/* Background Image - Strict 1:1 Aspect Ratio Protection (Never Stretches) */
-.bg-image {
+/* Picture Element Container */
+.bg-picture {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
+  display: block;
+}
+
+/* Image Tag - Aspect Ratio Preserving with object-fit: cover */
+.bg-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 130%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
   will-change: transform;
   transform-origin: center center;
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
 }
 
-/* Cards Container (Positioned Left-Center) */
+/* Third Slide Image Positioned to Right */
+.bg-slide:nth-child(3) .bg-img,
+.bg-img-right {
+  object-position: right top !important;
+}
+
+/* Ambient Glacial Light Overlay */
+.vignette-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at 35% 50%,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(8, 20, 34, 0.15) 50%,
+    rgba(4, 10, 18, 0.45) 100%
+  );
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Cards Stage Container (Auto Width Hugging Content) */
 .cards-stage {
   position: absolute;
-  top: 50%;
+  top: 40%;
   left: 80px;
-  transform: translateY(-50%);
-  width: 580px;
+  transform: translateY(-60%);
+  width: auto;
   max-width: calc(100vw - 160px);
   display: grid;
   grid-template-areas: "card";
   align-items: center;
+  justify-items: start;
   z-index: 3;
   pointer-events: none;
 }
 
-/* Content Card Matching the Exact Reference Design */
+/* Content Card Sized Automatically to Content */
 .content-card {
   grid-area: card;
-  width: 100%;
+  width: max-content;
   max-width: calc(100vw - 160px);
   background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.95);
   border-radius: 0px;
-  padding: 50px 60px;
-  box-shadow: 0 15px 45px rgba(0, 25, 45, 0.12);
+  padding: 48px 56px;
+  box-shadow: 0 25px 60px rgba(6, 22, 38, 0.18), 0 4px 16px rgba(0, 0, 0, 0.04);
   opacity: 0;
   pointer-events: none;
-  will-change: transform, opacity, width;
+  transform-origin: left center;
+  will-change: transform, opacity;
 }
 
 /* Tag / Category in Goudy Old Style */
@@ -116,9 +152,11 @@ html, body {
   text-transform: uppercase;
   color: #23587c;
   margin-bottom: 22px;
+  white-space: nowrap;
+  will-change: transform, opacity;
 }
 
-/* Title in Goudy Old Style */
+/* Title in Goudy Old Style (Unbroken) */
 .card-title {
   font-family: 'Goudy Old Style', 'Sorts Mill Goudy', 'Garamond', 'Georgia', serif;
   font-size: 52px;
@@ -127,6 +165,8 @@ html, body {
   color: #1e5276;
   margin-bottom: 20px;
   letter-spacing: -0.5px;
+  white-space: nowrap;
+  will-change: transform, opacity;
 }
 
 /* Description in Goudy Old Style */
@@ -136,6 +176,8 @@ html, body {
   line-height: 1.5;
   color: #245a80;
   font-weight: 400;
+  max-width: 540px;
+  will-change: transform, opacity;
 }
 
 /* HUD Navigation Indicators */
@@ -188,7 +230,7 @@ html, body {
   height: 4px;
   border-radius: 50px;
   background-color: rgba(255, 255, 255, 0.35);
-  transition: width 0.35s ease, background-color 0.35s ease;
+  transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.4s ease;
 }
 
 .hud-pagination .dot.active {
@@ -196,15 +238,33 @@ html, body {
   background-color: #ffffff;
 }
 
+.hud-scroll-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 11px;
+  letter-spacing: 3px;
+  font-family: 'Goudy Old Style', 'Sorts Mill Goudy', 'Garamond', 'Georgia', serif;
+}
+
+.hud-scroll-hint .scroll-line {
+  display: inline-block;
+  width: 32px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
 /* Responsive Breakpoints (Strictly Pixel Font Sizes) */
 @media (max-width: 1024px) {
   .cards-stage {
     left: 40px;
-    width: 480px;
+    max-width: calc(100vw - 80px);
   }
 
   .content-card {
-    padding: 38px 42px;
+    padding: 38px 44px;
+    max-width: calc(100vw - 80px);
   }
 
   .card-tag {
@@ -217,6 +277,7 @@ html, body {
 
   .card-description {
     font-size: 17px;
+    max-width: 460px;
   }
 }
 
@@ -227,10 +288,13 @@ html, body {
     top: 50%;
     transform: translateY(-50%);
     width: auto;
+    max-width: calc(100vw - 40px);
   }
 
   .content-card {
     padding: 28px 24px;
+    width: 100%;
+    max-width: 100%;
   }
 
   .card-tag {
@@ -242,10 +306,12 @@ html, body {
   .card-title {
     font-size: 30px;
     margin-bottom: 14px;
+    white-space: normal; /* wrap gracefully on mobile */
   }
 
   .card-description {
     font-size: 15px;
+    max-width: 100%;
   }
 
   .slider-hud {
@@ -255,5 +321,9 @@ html, body {
 
   .hud-counter .active-index {
     font-size: 18px;
+  }
+
+  .hud-scroll-hint {
+    display: none;
   }
 }
