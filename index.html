@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
   <title>JHP - Banner Slider</title>
   <link rel="stylesheet" href="style.css" />
   <!-- Google Fonts: Sorts Mill Goudy / Goudy Old Style -->
@@ -35,7 +35,7 @@
       <!-- Content Cards Container -->
       <div class="cards-stage">
 
-        <!-- Card 1 (Exact matching image reference) -->
+        <!-- Card 1 -->
         <div class="content-card">
           <span class="card-tag">T R U S T</span>
           <h2 class="card-title">Skin in the game</h2>
@@ -63,6 +63,25 @@
           <p class="card-description">Transparent, dedicated stewardship of wealth with shared conviction and purpose.</p>
         </div>
 
+      </div>
+
+      <!-- HUD Indicators (Counter, Dots, Scroll Hint) -->
+      <div class="slider-hud">
+        <div class="hud-counter">
+          <span class="active-index">01</span>
+          <span class="hud-divider">/</span>
+          <span class="total-index">04</span>
+        </div>
+        <div class="hud-pagination">
+          <span class="dot active"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+        <div class="hud-scroll-hint">
+          <span class="scroll-text">SCROLL</span>
+          <span class="scroll-line"></span>
+        </div>
       </div>
 
     </div>
